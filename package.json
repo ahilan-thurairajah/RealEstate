@@ -9,7 +9,10 @@
     "start": "node server.mjs"
   },
   "dependencies": {
-  "express": "^4.19.2",
-  "dotenv": "^16.4.5"
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

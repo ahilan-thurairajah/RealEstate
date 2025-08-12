@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: realestate
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm ci
+    startCommand: node server.mjs
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      # - key: CMA_ENABLED
+      #   value: "false"
+      # - key: DEFAULT_5Y_FIXED_APR
+      #   value: "5.0"
