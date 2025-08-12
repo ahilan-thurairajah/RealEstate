@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Buyer Calculator - Toronto Home Tools</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="icon" href="data:," />
+    <style>
+      body { padding-top: 4.5rem; }
+      .value { font-variant-numeric: tabular-nums; }
+      .muted { color: #6c757d; }
+      .sticky-summary { position: sticky; top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="/">Toronto Home Tools</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+            <li class="nav-item"><a class="nav-link active" href="/calculator.html">Buyer Calculator</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+    <h1 class="h3 mb-3">Buyer Calculator</h1>
+  <p class="text-muted">Estimate Total Cash On Hand and Total Monthly Expense. Uses internal Ontario/Toronto land transfer tax rules; Canadian mortgage math with semi-annual compounding.</p>
+
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <form id="calcForm" class="needs-validation" novalidate>
+            <div class="card">
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div id="validationMessages" class="alert alert-warning d-none" role="alert"></div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">First-Time Buyer</label>
+                    <select class="form-select" id="firstTimeBuyer">
+                      <option value="yes">Yes</option>
+                      <option value="no" selected>No</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Any Buyer a Non-Resident?</label>
+                    <select class="form-select" id="nonResident">
+                      <option value="no" selected>No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Property Type</label>
+                    <select class="form-select" id="propertyType">
+                      <option>Detached</option>
+                      <option>Semi-Detached</option>
+                      <option>Town-house</option>
+                      <option>Condominium</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6" id="dwellingTypeWrapper" style="display:none;">
+                    <label class="form-label">Dwelling Type</label>
+                    <select class="form-select" id="dwellingType">
+                      <option>Single Family</option>
+                      <option>Duplex</option>
+                      <option>Tri-plex</option>
+                      <option>Four-plex</option>
+                      <option>Multiplex</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Home Address</label>
+                    <input type="text" class="form-control" id="address" placeholder="375 Holiday Inn Dr, Toronto" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Closing Date</label>
+                    <input type="date" class="form-control" id="closingDate" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Number of Days to close</label>
+                    <input type="text" class="form-control" id="daysToClose" readonly />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Province</label>
+                    <select class="form-select" id="province">
+                      <option value="ON" selected>Ontario</option>
+                      <option value="QC">Quebec</option>
+                      <option value="SK">Saskatchewan</option>
+                      <option value="OTHER">Other (no PST on premium)</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Property in City of Toronto?</label>
+                    <select class="form-select" id="isToronto">
+                      <option value="no" selected>No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Purchase Price</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="purchasePrice" min="0" step="1000" value="575000" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Deposit</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="deposit" min="0" step="1000" value="20000" />
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Down Payment (%)</label>
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="downPct" min="0" max="100" step="0.01" value="20" />
+                      <span class="input-group-text">%</span>
+                    </div>
+                    <div class="form-text">Minimums: 5% up to $500k; 5% of first $500k + 10% of remainder to $1M; 20% at $1M+.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Down Payment Amount</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="downAmt" min="0" step="1000" />
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Home Inspection Fee</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="inspectionFee" min="0" step="50" value="550" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Lawyer, Municipal and Legal Fees</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="legalFees" min="0" step="50" value="2750" />
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Annual Property Tax</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="annualPropertyTax" min="0" step="10" value="3010.53" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Mortgage Interest Rate (APR)</label>
+                    <div class="input-group">
+                      <input type="number" class="form-control" id="apr" min="0" max="25" step="0.01" value="5.00" data-default-apr="5.00" placeholder="e.g., 5.49" />
+                      <span class="input-group-text">%</span>
+                      <button type="button" class="btn btn-outline-secondary" id="btnUseMarketRate">Use market rate</button>
+                    </div>
+                    <div id="aprHelp" class="form-text">APR can be auto-filled from market data.</div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Amortization (years)</label>
+                    <select id="amortYears" class="form-select">
+                      <option>5</option>
+                      <option>10</option>
+                      <option>15</option>
+                      <option>20</option>
+                      <option selected>25</option>
+                      <option>30</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">CMHC Premium Handling</label>
+                    <select class="form-select" id="cmhcHandling">
+                      <option value="finance" selected>Add to Mortgage</option>
+                      <option value="upfront">Pay at Closing</option>
+                    </select>
+                    <div class="form-text">Applies when down payment < 20% and price ≤ $1,000,000.</div>
+                  </div>
+
+
+                  <div class="col-md-6">
+                    <label class="form-label">Monthly Maintenance / POTL Fees</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="monthlyMaintenance" min="0" step="5" value="450.68" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Monthly Utilities (Water, Electricity, Gas)</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="monthlyUtilities" min="0" step="5" value="350.00" />
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Monthly Rental Fees (HWT, HRV, etc.)</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="monthlyRental" min="0" step="5" value="35.00" />
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <button class="btn btn-primary" type="button" id="recalc">Recalculate</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card sticky-summary">
+            <div class="card-body">
+              <h5>Totals</h5>
+              <div class="small muted">Mortgage uses Canadian semi-annual compounding; down payment rules per Canadian minimums.</div>
+              <hr />
+              <div class="d-flex justify-content-between"><span>Land Transfer Tax (Total)</span><span class="value" id="landTransferTax">$0.00</span></div>
+              <div class="small mt-2" id="lttBreakdown"></div>
+              <div class="d-flex justify-content-between"><span>CMHC Premium (financed)</span><span class="value" id="cmhcFinanced">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>CMHC Premium (paid at closing)</span><span class="value" id="cmhcAtClosing">$0.00</span></div>
+              <div class="d-flex justify-content-between" id="cmhcTaxRow"><span>CMHC PST on Premium</span><span class="value" id="cmhcTax">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Balance of Down Payment (Down − Deposit)</span><span class="value" id="balanceDown">$0.00</span></div>
+              <div class="d-flex justify-content-between fw-semibold mt-2"><span>Total Cash On Hand</span><span class="value" id="totalCash">$0.00</span></div>
+              <hr />
+              <div class="d-flex justify-content-between"><span>Monthly Property Taxes</span><span class="value" id="monthlyPropertyTax">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Mortgage Payment (Monthly)</span><span class="value" id="monthlyMortgage">$0.00</span></div>
+              <div class="d-flex justify-content-between fw-semibold mt-2"><span>Total Monthly Expense</span><span class="value" id="totalMonthly">$0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="container my-5 small">
+      <hr />
+      <p>Taxes are calculated using internal Ontario/Toronto rules and CMHC PST logic (ON/QC/SK). No external API required.</p>
+    </footer>
+
+    <script src="/calculator.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

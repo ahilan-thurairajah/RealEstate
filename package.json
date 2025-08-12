@@ -1,0 +1,15 @@
+{
+  "name": "homepurchase-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "build": "echo 'No build step for static site'",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+  "express": "^4.19.2",
+  "dotenv": "^16.4.5"
+  }
+}
