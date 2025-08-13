@@ -1,5 +1,10 @@
 const $ = (sel) => document.querySelector(sel);
 const fmt = (n) => Number(n || 0).toLocaleString(undefined, { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nf = new Intl.NumberFormat('en-CA');
+function setHelp(id, value) {
+  const el = $('#' + id);
+  if (el) el.textContent = value ? `≈ ${fmt(value)}` : '';
+}
 
 // Toronto time date-diff (exclusive of closing day)
 function daysBetweenTodayToronto(dateStr) {
@@ -142,8 +147,27 @@ async function recalc() {
   }).then(r => r.json()).catch(() => ({ total: 0 }));
   const landTransferTax = Number(lttResp.total || 0);
   $('#landTransferTax').textContent = fmt(landTransferTax);
-  const breakdown = `Provincial: ${fmt(lttResp.provincial || 0)} (rebate -${fmt(lttResp.provincialRebateApplied||0)}) | Municipal: ${fmt(lttResp.municipal || 0)} (rebate -${fmt(lttResp.municipalRebateApplied||0)})${(lttResp.nrst||0)>0?` | NRST: ${fmt(lttResp.nrst)}`:''}`;
-  $('#lttBreakdown').textContent = breakdown;
+  // Fill the accessible breakdown table
+  const provBefore = Number(lttResp.provincialBeforeRebate || 0);
+  const provRebate = Number(lttResp.provincialRebateApplied || 0);
+  const provAfter = Number(lttResp.provincial || 0);
+  const munBefore = Number(lttResp.municipalBeforeRebate || 0);
+  const munRebate = Number(lttResp.municipalRebateApplied || 0);
+  const munAfter = Number(lttResp.municipal || 0);
+  const nrstVal = Number(lttResp.nrst || 0);
+  const sumBefore = provBefore + munBefore + nrstVal;
+  const sumRebate = provRebate + munRebate;
+  const sumAfter = provAfter + munAfter + nrstVal;
+  const set = (id, v) => { const el = $('#' + id); if (el) el.textContent = fmt(v); };
+  set('lttProvTax', provBefore);
+  set('lttMunTax', munBefore);
+  set('lttSumTax', sumBefore);
+  set('lttProvRebate', provRebate);
+  set('lttMunRebate', munRebate);
+  set('lttSumRebate', sumRebate);
+  set('lttProvTotal', provAfter);
+  set('lttMunTotal', munAfter);
+  set('lttSumTotal', sumAfter);
 
   // CMHC applicability
   let cmhcPremium = 0;
@@ -202,12 +226,23 @@ async function recalc() {
   const totalMonthly = monthlyPayment + monthlyPropertyTax + monthlyMaintenance + monthlyUtilities + monthlyRental;
   $('#totalMonthly').textContent = fmt(totalMonthly);
 
+  // Update helper previews under fields
+  setHelp('purchasePriceHelp', purchasePrice);
+  setHelp('depositHelp', deposit);
+  setHelp('downAmtHelp', downAmt);
+  setHelp('inspectionFeeHelp', inspectionFee);
+  setHelp('legalFeesHelp', legalFees);
+  setHelp('annualPropertyTaxHelp', annualPropertyTax);
+  setHelp('monthlyMaintenanceHelp', monthlyMaintenance);
+  setHelp('monthlyUtilitiesHelp', monthlyUtilities);
+  setHelp('monthlyRentalHelp', monthlyRental);
+
   // persist key fields
   ['address','closingDate','isToronto','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental']
     .forEach(saveField);
 }
 
-$('#recalc').addEventListener('click', recalc);
+// Remove manual recalc; we use debounced auto-calc
 
 // Show dwelling type select only for Detached / Semi-Detached
 function updateDwellingVisibility() {
@@ -219,15 +254,19 @@ $('#firstTimeBuyer').addEventListener('change', recalc);
 $('#nonResident').addEventListener('change', recalc);
 $('#dwellingType').addEventListener('change', recalc);
 $('#isToronto')?.addEventListener('change', recalc);
-  ['purchasePrice','deposit','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','monthlyMaintenance','monthlyUtilities','monthlyRental','closingDate','downPct','downAmt','cmhcHandling','province']
-  .forEach(id => {
-    const el = $('#' + id);
-    if (!el) return;
-    el.addEventListener('input', () => {
-      if (id === 'downPct' || id === 'downAmt') linkDownPayment(Number($('#purchasePrice').value||0));
-      recalc();
+  const debounce = (fn, ms = 300) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
+  const recalcDebounced = debounce(recalc, 300);
+  ;['purchasePrice','deposit','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','monthlyMaintenance','monthlyUtilities','monthlyRental','closingDate','downPct','downAmt','cmhcHandling','province']
+    .forEach(id => {
+      const el = $('#' + id);
+      if (!el) return;
+      const handler = () => {
+        if (id === 'downPct' || id === 'downAmt') linkDownPayment(Number($('#purchasePrice').value||0));
+        recalcDebounced();
+      };
+      el.addEventListener('input', handler);
+      el.addEventListener('change', handler);
     });
-  });
 
 // Initialize defaults + persistence
 function initDefaults() {
@@ -250,6 +289,11 @@ function initDefaults() {
 }
 
 initDefaults();
+// Enable Bootstrap popovers (keyboard/tap friendly)
+try {
+  const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  popoverTriggerList.forEach(el => new bootstrap.Popover(el));
+} catch {}
 // Market APR lookup
 async function fetchMarketAprAndApply(force = false) {
   try {
