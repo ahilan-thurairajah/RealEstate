@@ -152,7 +152,8 @@ async function recalc() {
   const munRebate = Number(lttResp.municipalRebateApplied || 0);
   const munAfter = Number(lttResp.municipal || 0);
   const nrstVal = Number(lttResp.nrst || 0);
-  const sumBefore = provBefore + munBefore + nrstVal;
+  // Sum for 'Tax' row should exclude NRST now that NRST has its own row
+  const sumBefore = provBefore + munBefore; // exclude nrstVal here
   const sumRebate = provRebate + munRebate;
   const sumAfter = provAfter + munAfter + nrstVal;
   const set = (id, v) => { const el = $('#' + id); if (el) el.textContent = fmt(v); };
