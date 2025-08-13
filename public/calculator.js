@@ -152,13 +152,26 @@ async function recalc() {
   const munRebate = Number(lttResp.municipalRebateApplied || 0);
   const munAfter = Number(lttResp.municipal || 0);
   const nrstVal = Number(lttResp.nrst || 0);
-  const sumBefore = provBefore + munBefore + nrstVal;
+  // Sum for 'Tax' row should exclude NRST now that NRST has its own row
+  const sumBefore = provBefore + munBefore; // exclude nrstVal here
   const sumRebate = provRebate + munRebate;
   const sumAfter = provAfter + munAfter + nrstVal;
   const set = (id, v) => { const el = $('#' + id); if (el) el.textContent = fmt(v); };
   set('lttProvTax', provBefore);
   set('lttMunTax', munBefore);
   set('lttSumTax', sumBefore);
+  // NRST row visibility
+  const nrstRow = document.getElementById('lttNrstRow');
+  const nrstAmtCell = document.getElementById('lttNrstAmount');
+  if (nrstRow && nrstAmtCell) {
+    if (nrstVal > 0) {
+      nrstRow.classList.remove('d-none');
+      nrstAmtCell.textContent = fmt(nrstVal);
+    } else {
+      nrstRow.classList.add('d-none');
+      nrstAmtCell.textContent = fmt(0);
+    }
+  }
   set('lttProvRebate', provRebate);
   set('lttMunRebate', munRebate);
   set('lttSumRebate', sumRebate);
@@ -261,6 +274,7 @@ $('#firstTimeBuyer').addEventListener('change', recalc);
 $('#nonResident').addEventListener('change', recalc);
 $('#dwellingType').addEventListener('change', recalc);
 $('#isToronto')?.addEventListener('change', recalc);
+$('#province')?.addEventListener('change', () => { enforceProvinceTorontoRule(); recalc(); });
   const debounce = (fn, ms = 300) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
   const recalcDebounced = debounce(recalc, 300);
   ;['purchasePrice','deposit','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','monthlyMaintenance','monthlyUtilities','monthlyRental','monthlyHomeInsurance','closingDate','downPct','downAmt','cmhcHandling','province']
@@ -293,6 +307,20 @@ function initDefaults() {
   // Sync downAmt from percent initially
   linkDownPayment(Number($('#purchasePrice').value || 0));
   updateDwellingVisibility();
+  enforceProvinceTorontoRule();
+}
+
+// Disable Toronto selector if province != ON
+function enforceProvinceTorontoRule() {
+  const prov = ($('#province')?.value || 'ON').toUpperCase();
+  const torSel = $('#isToronto');
+  if (!torSel) return;
+  if (prov !== 'ON') {
+    torSel.value = 'no';
+    torSel.setAttribute('disabled', 'disabled');
+  } else {
+    torSel.removeAttribute('disabled');
+  }
 }
 
 initDefaults();
