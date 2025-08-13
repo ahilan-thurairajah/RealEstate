@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "node server.mjs",
     "build": "echo 'No build step for static site'",
+    "build:hero": "node scripts/build-hero.mjs",
     "start": "node server.mjs"
   },
   "dependencies": {
     "express": "^4.19.2",
     "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.4"
   },
   "engines": {
     "node": ">=18"
