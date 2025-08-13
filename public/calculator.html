@@ -53,9 +53,9 @@
                       <option value="no" selected>No</option>
                     </select>
                   </div>
-                  <div class="col-md-6">
+          <div class="col-md-6">
                     <label class="form-label">Any Buyer a Non-Resident?
-                      <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" title="Non-Resident Speculation Tax (NRST)" data-bs-content="If any buyer is a foreign national and the property is in a designated area, an additional NRST may apply.">
+            <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-html="true" title="Non-Resident Speculation Tax (NRST)" data-bs-content="The NRST is an additional land transfer tax on residential property purchased by foreign nationals (non‑citizens/non‑permanent residents) in designated areas of Ontario. <a href='https://www.ontario.ca/page/non-resident-speculation-tax' target='_blank' rel='noopener noreferrer'>Learn more</a>.">
                         <span aria-hidden="true">ⓘ</span><span class="visually-hidden">Info</span>
                       </button>
                     </label>
@@ -120,7 +120,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="purchasePrice" min="0" step="1000" value="575000" />
                     </div>
-                    <div class="form-text" id="purchasePriceHelp"></div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Deposit</label>
@@ -128,7 +127,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="deposit" min="0" step="1000" value="20000" />
                     </div>
-                    <div class="form-text" id="depositHelp"></div>
                   </div>
 
                   <div class="col-md-6">
@@ -145,7 +143,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="downAmt" min="0" step="1000" />
                     </div>
-                    <div class="form-text" id="downAmtHelp"></div>
                   </div>
 
                   <div class="col-md-6">
@@ -154,7 +151,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="inspectionFee" min="0" step="50" value="550" />
                     </div>
-                    <div class="form-text" id="inspectionFeeHelp"></div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Lawyer, Municipal and Legal Fees</label>
@@ -162,7 +158,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="legalFees" min="0" step="50" value="2750" />
                     </div>
-                    <div class="form-text" id="legalFeesHelp"></div>
                   </div>
 
                   <div class="col-md-6">
@@ -171,7 +166,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="annualPropertyTax" min="0" step="10" value="3010.53" />
                     </div>
-                    <div class="form-text" id="annualPropertyTaxHelp"></div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Mortgage Interest Rate (APR)</label>
@@ -215,7 +209,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="monthlyMaintenance" min="0" step="5" value="450.68" />
                     </div>
-                    <div class="form-text" id="monthlyMaintenanceHelp"></div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Monthly Utilities (Water, Electricity, Gas)</label>
@@ -223,7 +216,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="monthlyUtilities" min="0" step="5" value="350.00" />
                     </div>
-                    <div class="form-text" id="monthlyUtilitiesHelp"></div>
                   </div>
 
                   <div class="col-md-6">
@@ -232,7 +224,6 @@
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="monthlyRental" min="0" step="5" value="35.00" />
                     </div>
-                    <div class="form-text" id="monthlyRentalHelp"></div>
                   </div>
                   
                 </div>
@@ -283,6 +274,14 @@
     <footer class="container my-5 small">
       <hr />
       <p>Taxes are calculated using internal Ontario/Toronto rules and CMHC PST logic (ON/QC/SK). No external API required.</p>
+      <div class="mt-3">
+        <h6>Resources</h6>
+        <ul class="mb-0">
+          <li>NRST overview (Ontario): <a href="https://www.ontario.ca/page/non-resident-speculation-tax" target="_blank" rel="noopener noreferrer">ontario.ca/page/non-resident-speculation-tax</a></li>
+          <li>Toronto Land Transfer Tax Calculator: <a href="https://www.ratehub.ca/land-transfer-tax-toronto" target="_blank" rel="noopener noreferrer">ratehub.ca/land-transfer-tax-toronto</a></li>
+          <li>Mortgage calculator (CMHC): <a href="https://www.cmhc-schl.gc.ca/consumers/home-buying/calculators/mortgage-calculator" target="_blank" rel="noopener noreferrer">cmhc-schl.gc.ca/.../mortgage-calculator</a></li>
+        </ul>
+      </div>
     </footer>
 
     <script src="/calculator.js" type="module"></script>

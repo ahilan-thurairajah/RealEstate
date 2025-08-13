@@ -1,10 +1,6 @@
 const $ = (sel) => document.querySelector(sel);
 const fmt = (n) => Number(n || 0).toLocaleString(undefined, { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nf = new Intl.NumberFormat('en-CA');
-function setHelp(id, value) {
-  const el = $('#' + id);
-  if (el) el.textContent = value ? `≈ ${fmt(value)}` : '';
-}
 
 // Toronto time date-diff (exclusive of closing day)
 function daysBetweenTodayToronto(dateStr) {
@@ -226,16 +222,7 @@ async function recalc() {
   const totalMonthly = monthlyPayment + monthlyPropertyTax + monthlyMaintenance + monthlyUtilities + monthlyRental;
   $('#totalMonthly').textContent = fmt(totalMonthly);
 
-  // Update helper previews under fields
-  setHelp('purchasePriceHelp', purchasePrice);
-  setHelp('depositHelp', deposit);
-  setHelp('downAmtHelp', downAmt);
-  setHelp('inspectionFeeHelp', inspectionFee);
-  setHelp('legalFeesHelp', legalFees);
-  setHelp('annualPropertyTaxHelp', annualPropertyTax);
-  setHelp('monthlyMaintenanceHelp', monthlyMaintenance);
-  setHelp('monthlyUtilitiesHelp', monthlyUtilities);
-  setHelp('monthlyRentalHelp', monthlyRental);
+  // Helper previews removed as requested
 
   // persist key fields
   ['address','closingDate','isToronto','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental']
