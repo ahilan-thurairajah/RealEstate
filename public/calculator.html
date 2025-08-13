@@ -204,7 +204,11 @@
 
 
                   <div class="col-md-6">
-                    <label class="form-label">Monthly Maintenance / POTL Fees</label>
+                    <label class="form-label">Monthly Maintenance / POTL Fees
+                      <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" title="Maintenance / POTL" data-bs-content="POTL = Parcel of Tied Land. Covers shared elements or condo-style common element fees.">
+                        <span aria-hidden="true">ⓘ</span><span class="visually-hidden">Info</span>
+                      </button>
+                    </label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="monthlyMaintenance" min="0" step="5" value="450.68" />
@@ -219,10 +223,25 @@
                   </div>
 
                   <div class="col-md-6">
-                    <label class="form-label">Monthly Rental Fees (HWT, HRV, etc.)</label>
+                    <label class="form-label">Monthly Rental Fees (HWT, HRV, etc.)
+                      <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" title="Rental Equipment" data-bs-content="HWT = Hot Water Tank; HRV = Heat Recovery Ventilator; include any rented HVAC / water equipment.">
+                        <span aria-hidden="true">ⓘ</span><span class="visually-hidden">Info</span>
+                      </button>
+                    </label>
                     <div class="input-group">
                       <span class="input-group-text">$</span>
                       <input type="number" class="form-control" id="monthlyRental" min="0" step="5" value="35.00" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Monthly Home Insurance
+                      <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" title="Home Insurance" data-bs-content="Estimated monthly homeowners/condo insurance premium.">
+                        <span aria-hidden="true">ⓘ</span><span class="visually-hidden">Info</span>
+                      </button>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" id="monthlyHomeInsurance" min="0" step="5" value="0" />
                     </div>
                   </div>
                   
@@ -235,10 +254,13 @@
         <div class="col-lg-5">
           <div class="card sticky-summary">
             <div class="card-body">
-              <h5>Totals</h5>
+              <h5>Summary</h5>
               <div class="small muted">Mortgage uses Canadian semi-annual compounding; down payment rules per Canadian minimums.</div>
               <hr />
-              <div class="d-flex justify-content-between"><span>Land Transfer Tax (Total)
+              <h6 class="mt-2">Total Cash On Hand</h6>
+              <div class="d-flex justify-content-between"><span>Down Payment Amount</span><span class="value" id="cashDownPaymentAmount">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Deposit</span><span class="value" id="cashDeposit">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Land Transfer Tax (Net after rebates)
                 <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" title="Land Transfer Tax" data-bs-content="Ontario provincial + Toronto municipal (if applicable). First-time buyer rebates applied; NRST if selected.">
                   <span aria-hidden="true">ⓘ</span><span class="visually-hidden">Info</span>
                 </button>
@@ -256,14 +278,29 @@
                   </tbody>
                 </table>
               </details>
-              <div class="d-flex justify-content-between"><span>CMHC Premium (financed)</span><span class="value" id="cmhcFinanced">$0.00</span></div>
+              <div class="d-flex justify-content-between" id="cmhcTaxRow"><span>CMHC PST on Premium
+                <button type="button" class="btn btn-link p-0 align-baseline" data-bs-toggle="popover" data-bs-trigger="focus" title="CMHC PST" data-bs-content="Provincial sales tax on the insurance premium (ON 8%, QC 9%, SK 6%). Always paid at closing and not financeable.">
+                  <span aria-hidden="true">ⓘ</span><span class="visually-hidden">Info</span>
+                </button>
+              </span><span class="value" id="cmhcTax">$0.00</span></div>
               <div class="d-flex justify-content-between"><span>CMHC Premium (paid at closing)</span><span class="value" id="cmhcAtClosing">$0.00</span></div>
-              <div class="d-flex justify-content-between" id="cmhcTaxRow"><span>CMHC PST on Premium</span><span class="value" id="cmhcTax">$0.00</span></div>
-              <div class="d-flex justify-content-between"><span>Balance of Down Payment (Down − Deposit)</span><span class="value" id="balanceDown">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Home Inspection Fee</span><span class="value" id="inspectionFeeDisplay">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Lawyer, Municipal and Legal Fees</span><span class="value" id="legalFeesDisplay">$0.00</span></div>
               <div class="d-flex justify-content-between fw-semibold mt-2"><span>Total Cash On Hand</span><span class="value" id="totalCash" aria-live="polite">$0.00</span></div>
-              <hr />
+
+              <h6 class="mt-4">Total Mortgage Amount</h6>
+              <div class="d-flex justify-content-between"><span>Purchase Price</span><span class="value" id="purchasePriceDisplay">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Down Payment Amount</span><span class="value" id="downPaymentAmountDisplay">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>CMHC Premium (financed)</span><span class="value" id="cmhcFinanced">$0.00</span></div>
+              <div class="d-flex justify-content-between fw-semibold mt-2"><span>Total Mortgage Amount</span><span class="value" id="totalMortgageAmount" aria-live="polite">$0.00</span></div>
+
+              <h6 class="mt-4">Total Monthly Expense</h6>
               <div class="d-flex justify-content-between"><span>Monthly Property Taxes</span><span class="value" id="monthlyPropertyTax">$0.00</span></div>
               <div class="d-flex justify-content-between"><span>Mortgage Payment (Monthly)</span><span class="value" id="monthlyMortgage" aria-live="polite">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Monthly Home Insurance</span><span class="value" id="monthlyHomeInsuranceDisplay">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Monthly Maintenance / POTL Fees</span><span class="value" id="monthlyMaintenanceDisplay">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Monthly Utilities (Water, Electricity, Gas)</span><span class="value" id="monthlyUtilitiesDisplay">$0.00</span></div>
+              <div class="d-flex justify-content-between"><span>Monthly Rental Fees (HWT, HRV, etc.)</span><span class="value" id="monthlyRentalDisplay">$0.00</span></div>
               <div class="d-flex justify-content-between fw-semibold mt-2"><span>Total Monthly Expense</span><span class="value" id="totalMonthly" aria-live="polite">$0.00</span></div>
             </div>
           </div>

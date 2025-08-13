@@ -98,6 +98,7 @@ async function recalc() {
   const monthlyMaintenance = Number($('#monthlyMaintenance').value || 0);
   const monthlyUtilities = Number($('#monthlyUtilities').value || 0);
   const monthlyRental = Number($('#monthlyRental').value || 0);
+  const monthlyHomeInsurance = Number($('#monthlyHomeInsurance').value || 0);
   const closingDate = $('#closingDate').value;
   const firstTimeBuyer = $('#firstTimeBuyer').value === 'yes';
   const isNonResident = $('#nonResident').value === 'yes';
@@ -205,27 +206,46 @@ async function recalc() {
   const mortgagePrincipal = baseMortgage + financedPremium;
   const monthlyPayment = canadianMonthlyPayment(mortgagePrincipal, apr, amortYears);
   $('#monthlyMortgage').textContent = fmt(monthlyPayment);
+  // Total mortgage amount = purchase price + financed premium - down payment
+  const totalMortgageAmount = purchasePrice + financedPremium - downAmt;
+  const totalMortgageEl = $('#totalMortgageAmount');
+  if (totalMortgageEl) totalMortgageEl.textContent = fmt(totalMortgageAmount);
 
   // Balance of down payment (for cash on hand). Clamp to 0
   const balanceDown = Math.max(0, downAmt - deposit);
-  $('#balanceDown').textContent = fmt(balanceDown);
+  // Cash section displays: down payment amount and deposit (deposit shown as negative)
+  const cashDownDisp = $('#cashDownPaymentAmount'); if (cashDownDisp) cashDownDisp.textContent = fmt(downAmt);
+  const cashDepDisp = $('#cashDeposit'); if (cashDepDisp) cashDepDisp.textContent = deposit ? ('-' + fmt(deposit).replace(/^-/, '')) : fmt(0);
+  // Show inspection and legal fee displays
+  const inspDisp = $('#inspectionFeeDisplay'); if (inspDisp) inspDisp.textContent = fmt(inspectionFee);
+  const legalDisp = $('#legalFeesDisplay'); if (legalDisp) legalDisp.textContent = fmt(legalFees);
 
-  // Cash on hand = Deposit + Inspection + Legal + LTT + NRST (already inside lttResp.total) + CMHC PST + premium at closing + balanceDown
-  const totalCash = deposit + inspectionFee + legalFees + landTransferTax + cmhcPST + premiumAtClosing + balanceDown;
+  // Cash on hand (revised) = Down payment amount + inspection + legal + land transfer tax (net) + CMHC PST + premium at closing - deposit already paid
+  // (Deposit reduces what remains to bring; we add full down payment then subtract deposit.)
+  const totalCash = downAmt + inspectionFee + legalFees + landTransferTax + cmhcPST + premiumAtClosing - deposit;
   $('#totalCash').textContent = fmt(totalCash);
+  // Mortgage amount section displays
+  const ppDisp = $('#purchasePriceDisplay'); if (ppDisp) ppDisp.textContent = fmt(purchasePrice);
+  const dpAmtDisp = $('#downPaymentAmountDisplay'); if (dpAmtDisp) dpAmtDisp.textContent = downAmt ? ('-' + fmt(downAmt).replace(/^-/, '')) : fmt(0);
 
   // Monthly property tax
   const monthlyPropertyTax = annualPropertyTax / 12;
   $('#monthlyPropertyTax').textContent = fmt(monthlyPropertyTax);
 
-  // Total monthly = mortgage payment + monthly property tax + maintenance + utilities + rental
-  const totalMonthly = monthlyPayment + monthlyPropertyTax + monthlyMaintenance + monthlyUtilities + monthlyRental;
+  // Total monthly = mortgage payment + monthly property tax + maintenance + utilities + rental + home insurance
+  const totalMonthly = monthlyPayment + monthlyPropertyTax + monthlyMaintenance + monthlyUtilities + monthlyRental + monthlyHomeInsurance;
   $('#totalMonthly').textContent = fmt(totalMonthly);
+  // Show home insurance monthly
+  const monthlyHomeInsuranceDisplay = $('#monthlyHomeInsuranceDisplay');
+  if (monthlyHomeInsuranceDisplay) monthlyHomeInsuranceDisplay.textContent = fmt(monthlyHomeInsurance);
+  const maintDisp = $('#monthlyMaintenanceDisplay'); if (maintDisp) maintDisp.textContent = fmt(monthlyMaintenance);
+  const utilDisp = $('#monthlyUtilitiesDisplay'); if (utilDisp) utilDisp.textContent = fmt(monthlyUtilities);
+  const rentalDisp = $('#monthlyRentalDisplay'); if (rentalDisp) rentalDisp.textContent = fmt(monthlyRental);
 
   // Helper previews removed as requested
 
   // persist key fields
-  ['address','closingDate','isToronto','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental']
+  ['address','closingDate','isToronto','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental','monthlyHomeInsurance']
     .forEach(saveField);
 }
 
@@ -243,7 +263,7 @@ $('#dwellingType').addEventListener('change', recalc);
 $('#isToronto')?.addEventListener('change', recalc);
   const debounce = (fn, ms = 300) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
   const recalcDebounced = debounce(recalc, 300);
-  ;['purchasePrice','deposit','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','monthlyMaintenance','monthlyUtilities','monthlyRental','closingDate','downPct','downAmt','cmhcHandling','province']
+  ;['purchasePrice','deposit','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','monthlyMaintenance','monthlyUtilities','monthlyRental','monthlyHomeInsurance','closingDate','downPct','downAmt','cmhcHandling','province']
     .forEach(id => {
       const el = $('#' + id);
       if (!el) return;
@@ -257,7 +277,7 @@ $('#isToronto')?.addEventListener('change', recalc);
 
 // Initialize defaults + persistence
 function initDefaults() {
-  ['address','closingDate','isToronto','province','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental']
+  ['address','closingDate','isToronto','province','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental','monthlyHomeInsurance']
     .forEach(loadField);
     const cmhcTaxRow = document.getElementById('cmhcTaxRow');
     if (cmhcTaxRow) cmhcTaxRow.style.display = 'none'; // Initialize as hidden
