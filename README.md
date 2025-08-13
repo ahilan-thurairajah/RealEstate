@@ -36,7 +36,13 @@ npm run start
 
 ### Add a realistic photographic hero image
 1. Place a high-quality licensed photo (e.g. sunrise Toronto skyline) at `public/img/hero-src/hero-source.jpg` (recommended 3200×1600 or larger, landscape).
-2. Run the processing script:
+2. (First time only) Install the optional local dependency:
+
+  ```powershell
+  npm i -D sharp
+  ```
+
+3. Run the processing script (harmless no-op in production if sharp absent):
 
   ```powershell
   npm run build:hero
@@ -48,8 +54,8 @@ npm run start
   - `hero-toronto-1600.webp|jpg`
   - `hero-toronto-placeholder.webp` (tiny blurred placeholder)
 
-3. Commit the generated files (WebP + JPEG). The home page `<picture>` will automatically use them.
-4. Keep proper attribution & licensing notes (add a comment in README if required by the license).
+4. Commit the generated files (WebP + JPEG). The home page `<picture>` will automatically use them.
+5. Keep proper attribution & licensing notes (add a comment in README if required by the license).
 
 If no real photo is supplied the site falls back to a gradient placeholder.
 

@@ -7,7 +7,15 @@
  */
 import fs from 'fs';
 import path from 'path';
-import sharp from 'sharp';
+let sharp;
+try {
+  // Dynamic import so production deploy without sharp succeeds.
+  const mod = await import('sharp');
+  sharp = mod.default;
+} catch (e) {
+  console.error('[hero] sharp not installed. Install locally with: npm i -D sharp');
+  process.exit(0); // Non-fatal: exit 0 so CI/deploy does not fail.
+}
 
 const SRC_DIR = path.resolve('public/img/hero-src');
 const OUT_DIR = path.resolve('public/img/hero');

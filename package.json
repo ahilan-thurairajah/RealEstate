@@ -13,9 +13,7 @@
     "express": "^4.19.2",
     "dotenv": "^16.4.5"
   },
-  "devDependencies": {
-    "sharp": "^0.33.4"
-  },
+  "devDependencies": {},
   "engines": {
     "node": ">=18"
   }
