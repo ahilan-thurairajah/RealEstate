@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "node server.mjs",
-    "build": "echo 'No build step for static site'",
+  "build": "echo 'No build step for static site'",
     "start": "node server.mjs"
   },
   "dependencies": {
     "express": "^4.19.2",
     "dotenv": "^16.4.5"
   },
+  "devDependencies": {},
   "engines": {
     "node": ">=18"
   }

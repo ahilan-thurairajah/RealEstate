@@ -34,6 +34,7 @@ npm run start
 # health check: http://localhost:5173/api/health
 ```
 
+
 ## Configure CMA API (later)
 - Update `server.mjs` to call CMA endpoints documented at https://developers.canadianmortgageapp.com/ using your API key.
 - Replace the placeholder responses with real amounts and ensure inputs match CMA requirements (province=ON, municipality=Toronto where applicable).

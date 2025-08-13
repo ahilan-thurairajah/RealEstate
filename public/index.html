@@ -8,9 +8,10 @@
     <link rel="icon" href="data:," />
     <style>
       body { padding-top: 4.5rem; }
-      .hero { background: #0d6efd; color: #fff; border-radius: 0.5rem; }
+      .hero { background: linear-gradient(135deg,#0d6efd 0%,#094a9c 60%); color: #fff; border-radius: 0.5rem; }
       .stat { font-weight: 600; }
       footer { color: #6c757d; }
+  /* Hero image simplified to a single static SVG */
     </style>
   </head>
   <body>
@@ -30,15 +31,15 @@
     </nav>
 
     <main class="container">
-      <section class="hero p-5 mb-4">
+  <section class="hero p-5 mb-4">
         <div class="row align-items-center">
-          <div class="col-lg-7">
+          <div class="col-lg-7 position-relative">
             <h1 class="display-6">Tools for Toronto Home Buyers & Sellers</h1>
             <p class="lead mb-3">This website provides simple, trustworthy tools to plan your purchase or sale in the GTA. Start with our Buyer Calculator to estimate cash needed to close and monthly expenses.</p>
             <a href="/calculator.html" class="btn btn-light btn-lg">Open Buyer Calculator</a>
           </div>
-          <div class="col-lg-5 text-center">
-            <img class="img-fluid" alt="Toronto skyline" src="https://images.unsplash.com/photo-1534683972741-91cf0f3f36f8?w=800&q=80&auto=format&fit=crop" />
+          <div class="col-lg-5 text-center mt-4 mt-lg-0">
+            <img class="img-fluid rounded shadow-sm" src="/img/toronto-skyline.svg" width="800" height="400" alt="Stylized Toronto skyline" loading="lazy" />
           </div>
         </div>
       </section>
@@ -78,5 +79,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Removed progressive image script; static SVG only -->
   </body>
 </html>
