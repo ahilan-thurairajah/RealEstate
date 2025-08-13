@@ -213,7 +213,9 @@ async function recalc() {
 
   // Balance of down payment (for cash on hand). Clamp to 0
   const balanceDown = Math.max(0, downAmt - deposit);
-  $('#balanceDown').textContent = fmt(balanceDown);
+  // Cash section displays: down payment amount and deposit (deposit shown as negative)
+  const cashDownDisp = $('#cashDownPaymentAmount'); if (cashDownDisp) cashDownDisp.textContent = fmt(downAmt);
+  const cashDepDisp = $('#cashDeposit'); if (cashDepDisp) cashDepDisp.textContent = deposit ? ('-' + fmt(deposit).replace(/^-/, '')) : fmt(0);
   // Show inspection and legal fee displays
   const inspDisp = $('#inspectionFeeDisplay'); if (inspDisp) inspDisp.textContent = fmt(inspectionFee);
   const legalDisp = $('#legalFeesDisplay'); if (legalDisp) legalDisp.textContent = fmt(legalFees);
@@ -224,7 +226,7 @@ async function recalc() {
   $('#totalCash').textContent = fmt(totalCash);
   // Mortgage amount section displays
   const ppDisp = $('#purchasePriceDisplay'); if (ppDisp) ppDisp.textContent = fmt(purchasePrice);
-  const dpAmtDisp = $('#downPaymentAmountDisplay'); if (dpAmtDisp) dpAmtDisp.textContent = fmt(downAmt);
+  const dpAmtDisp = $('#downPaymentAmountDisplay'); if (dpAmtDisp) dpAmtDisp.textContent = downAmt ? ('-' + fmt(downAmt).replace(/^-/, '')) : fmt(0);
 
   // Monthly property tax
   const monthlyPropertyTax = annualPropertyTax / 12;
