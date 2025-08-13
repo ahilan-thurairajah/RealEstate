@@ -11,12 +11,7 @@
       .hero { background: linear-gradient(135deg,#0d6efd 0%,#094a9c 60%); color: #fff; border-radius: 0.5rem; }
       .stat { font-weight: 600; }
       footer { color: #6c757d; }
-      .hero-picture { position: relative; max-width: 520px; }
-      .hero-photo { object-fit: cover; aspect-ratio: 2 / 1; background:#1a3046; transition: filter .6s ease, opacity .6s ease; filter: blur(8px) saturate(60%); }
-      .hero-photo.is-loaded { filter: blur(0) saturate(100%); opacity: 1; }
-      @media (prefers-reduced-motion: reduce) {
-        .hero-photo { transition:none; }
-      }
+  /* Hero image simplified to a single static SVG */
     </style>
   </head>
   <body>
@@ -36,7 +31,7 @@
     </nav>
 
     <main class="container">
-      <section class="hero p-5 mb-4 position-relative overflow-hidden">
+  <section class="hero p-5 mb-4">
         <div class="row align-items-center">
           <div class="col-lg-7 position-relative">
             <h1 class="display-6">Tools for Toronto Home Buyers & Sellers</h1>
@@ -44,27 +39,7 @@
             <a href="/calculator.html" class="btn btn-light btn-lg">Open Buyer Calculator</a>
           </div>
           <div class="col-lg-5 text-center mt-4 mt-lg-0">
-            <!-- Responsive photographic hero image structure.
-                 Drop properly licensed photos into /public/img/hero/ with names:
-                 hero-toronto-640.webp, hero-toronto-1024.webp, hero-toronto-1600.webp (and optional JPEG fallbacks).
-                 Keep aspect ratio ~2:1 (e.g., 1600x800). -->
-            <picture class="hero-picture d-inline-block rounded shadow-sm">
-              <!-- Modern WebP sources -->
-              <source type="image/webp" 
-                      srcset="/img/hero/hero-toronto-640.webp 640w, /img/hero/hero-toronto-1024.webp 1024w, /img/hero/hero-toronto-1600.webp 1600w" 
-                      sizes="(max-width: 576px) 90vw, (max-width: 992px) 50vw, 480px" />
-              <!-- Fallback JPEG sources (add these files when you add the real photo) -->
-              <source type="image/jpeg" 
-                      srcset="/img/hero/hero-toronto-640.jpg 640w, /img/hero/hero-toronto-1024.jpg 1024w, /img/hero/hero-toronto-1600.jpg 1600w" 
-                      sizes="(max-width: 576px) 90vw, (max-width: 992px) 50vw, 480px" />
-              <!-- Inline tiny blurred placeholder (LQIP) that will be swapped once higher-res loads -->
-              <img id="heroImg" class="img-fluid rounded hero-photo" width="800" height="400"
-                   src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='400'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='%23c9d6e3'/><stop offset='50%' stop-color='%2387a6bf'/><stop offset='100%' stop-color='%2333485f'/></linearGradient></defs><rect width='800' height='400' fill='url(%23g)'/><rect width='800' height='400' fill='%23000033' opacity='0.25'/></svg>"
-                   alt="Early morning panoramic photo of the Toronto skyline across Lake Ontario (placeholder)" loading="lazy" decoding="async" />
-            </picture>
-            <noscript>
-              <img class="img-fluid rounded shadow-sm" src="/img/toronto-skyline-layered.svg" width="800" height="400" alt="Toronto skyline" />
-            </noscript>
+            <img class="img-fluid rounded shadow-sm" src="/img/toronto-skyline.svg" width="800" height="400" alt="Stylized Toronto skyline" loading="lazy" />
           </div>
         </div>
       </section>
@@ -104,18 +79,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Progressive enhancement: once first matching source is fetched by browser, mark loaded for blur transition.
-      (function() {
-        const img = document.getElementById('heroImg');
-        if(!img) return;
-        // If the browser has already picked a candidate src from <picture>, we can listen to load.
-        img.addEventListener('load', () => {
-          // Ignore the initial inline placeholder load; when upgraded it will fire again if src changes.
-          requestAnimationFrame(() => img.classList.add('is-loaded'));
-        });
-        // If no higher-res provided yet (files missing), do nothing gracefully.
-      })();
-    </script>
+  <!-- Removed progressive image script; static SVG only -->
   </body>
 </html>

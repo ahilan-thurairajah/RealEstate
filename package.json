@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.mjs",
-    "build": "echo 'No build step for static site'",
-    "build:hero": "node scripts/build-hero.mjs",
+  "build": "echo 'No build step for static site'",
     "start": "node server.mjs"
   },
   "dependencies": {

@@ -34,30 +34,6 @@ npm run start
 # health check: http://localhost:5173/api/health
 ```
 
-### Add a realistic photographic hero image
-1. Place a high-quality licensed photo (e.g. sunrise Toronto skyline) at `public/img/hero-src/hero-source.jpg` (recommended 3200×1600 or larger, landscape).
-2. (First time only) Install the optional local dependency:
-
-  ```powershell
-  npm i -D sharp
-  ```
-
-3. Run the processing script (harmless no-op in production if sharp absent):
-
-  ```powershell
-  npm run build:hero
-  ```
-
-  This creates responsive variants in `public/img/hero/`:
-  - `hero-toronto-640.webp|jpg`
-  - `hero-toronto-1024.webp|jpg`
-  - `hero-toronto-1600.webp|jpg`
-  - `hero-toronto-placeholder.webp` (tiny blurred placeholder)
-
-4. Commit the generated files (WebP + JPEG). The home page `<picture>` will automatically use them.
-5. Keep proper attribution & licensing notes (add a comment in README if required by the license).
-
-If no real photo is supplied the site falls back to a gradient placeholder.
 
 ## Configure CMA API (later)
 - Update `server.mjs` to call CMA endpoints documented at https://developers.canadianmortgageapp.com/ using your API key.
