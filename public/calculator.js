@@ -214,11 +214,17 @@ async function recalc() {
   // Balance of down payment (for cash on hand). Clamp to 0
   const balanceDown = Math.max(0, downAmt - deposit);
   $('#balanceDown').textContent = fmt(balanceDown);
+  // Show inspection and legal fee displays
+  const inspDisp = $('#inspectionFeeDisplay'); if (inspDisp) inspDisp.textContent = fmt(inspectionFee);
+  const legalDisp = $('#legalFeesDisplay'); if (legalDisp) legalDisp.textContent = fmt(legalFees);
 
   // Cash on hand (revised) = Down payment amount + inspection + legal + land transfer tax (net) + CMHC PST + premium at closing - deposit already paid
   // (Deposit reduces what remains to bring; we add full down payment then subtract deposit.)
   const totalCash = downAmt + inspectionFee + legalFees + landTransferTax + cmhcPST + premiumAtClosing - deposit;
   $('#totalCash').textContent = fmt(totalCash);
+  // Mortgage amount section displays
+  const ppDisp = $('#purchasePriceDisplay'); if (ppDisp) ppDisp.textContent = fmt(purchasePrice);
+  const dpAmtDisp = $('#downPaymentAmountDisplay'); if (dpAmtDisp) dpAmtDisp.textContent = fmt(downAmt);
 
   // Monthly property tax
   const monthlyPropertyTax = annualPropertyTax / 12;
@@ -230,6 +236,9 @@ async function recalc() {
   // Show home insurance monthly
   const monthlyHomeInsuranceDisplay = $('#monthlyHomeInsuranceDisplay');
   if (monthlyHomeInsuranceDisplay) monthlyHomeInsuranceDisplay.textContent = fmt(monthlyHomeInsurance);
+  const maintDisp = $('#monthlyMaintenanceDisplay'); if (maintDisp) maintDisp.textContent = fmt(monthlyMaintenance);
+  const utilDisp = $('#monthlyUtilitiesDisplay'); if (utilDisp) utilDisp.textContent = fmt(monthlyUtilities);
+  const rentalDisp = $('#monthlyRentalDisplay'); if (rentalDisp) rentalDisp.textContent = fmt(monthlyRental);
 
   // Helper previews removed as requested
 
