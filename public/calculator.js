@@ -70,57 +70,68 @@ function linkDownPayment(purchasePrice) {
   }
 }
 
+/**
+ * Calculates the monthly mortgage payment for a Canadian mortgage.
+ * Canadian mortgages are compounded semi-annually, so the APR must be
+ * converted to an effective monthly rate.
+ * @param {number} principal The total mortgage amount.
+ * @param {number} aprPercent The annual percentage rate.
+ * @param {number} years The amortization period in years.
+ * @returns {number} The calculated monthly payment.
+ */
 function canadianMonthlyPayment(principal, aprPercent, years) {
-  const n = Math.max(1, Math.round(years * 12));
+  const n = Math.max(1, Math.round(years * 12)); // Total number of payments
   const apr = Math.max(0, aprPercent) / 100;
-  const r = Math.pow(1 + apr / 2, 2 / 12) - 1; // effective monthly rate
+  // Convert semi-annual compound rate to an effective monthly rate
+  const r = Math.pow(1 + apr / 2, 2 / 12) - 1;
   if (r === 0) return principal / n;
+  // Standard loan payment formula
   return principal * (r / (1 - Math.pow(1 + r, -n)));
 }
 
-function showValidationMessages(messages) {
+function showValidationMessages(messages, errors = []) {
   const box = $('#validationMessages');
-  if (!messages.length) {
+  const allMessages = [...messages, ...errors.map(e => `Error: ${e}`)];
+  if (!allMessages.length) {
     box.classList.add('d-none');
     box.textContent = '';
   } else {
     box.classList.remove('d-none');
-    box.innerHTML = messages.map(m => `• ${m}`).join('<br/>');
+    box.innerHTML = allMessages.map(m => `• ${m}`).join('<br/>');
   }
 }
 
-async function recalc() {
-  const purchasePrice = Number($('#purchasePrice').value || 0);
-  const deposit = Number($('#deposit').value || 0);
-  const inspectionFee = Number($('#inspectionFee').value || 0);
-  const legalFees = Number($('#legalFees').value || 0);
-  const annualPropertyTax = Number($('#annualPropertyTax').value || 0);
-  const monthlyMaintenance = Number($('#monthlyMaintenance').value || 0);
-  const monthlyUtilities = Number($('#monthlyUtilities').value || 0);
-  const monthlyRental = Number($('#monthlyRental').value || 0);
-  const monthlyHomeInsurance = Number($('#monthlyHomeInsurance').value || 0);
-  const closingDate = $('#closingDate').value;
-  const firstTimeBuyer = $('#firstTimeBuyer').value === 'yes';
-  const isNonResident = $('#nonResident').value === 'yes';
-  const isToronto = $('#isToronto')?.value === 'yes';
-  const provinceSel = ($('#province')?.value || 'ON').toUpperCase();
+function getFormInputs() {
   const provMap = { ON: 'ON', ONTARIO: 'ON', QC: 'QC', QUEBEC: 'QC', SK: 'SK', SASKATCHEWAN: 'SK', OTHER: 'OTHER' };
+  const provinceSel = ($('#province')?.value || 'ON').toUpperCase();
   const provinceCode = provMap[provinceSel] || 'OTHER';
-  const propertyType = $('#propertyType').value;
-  const dwellingType = $('#dwellingType').value;
-  const apr = Number($('#apr').value || 0);
-  const amortYears = Number($('#amortYears').value || 25);
-  const cmhcHandling = $('#cmhcHandling')?.value || 'finance';
 
-  // Days to close in Toronto time
-  $('#daysToClose').value = daysBetweenTodayToronto(closingDate);
+  return {
+    purchasePrice: Number($('#purchasePrice').value || 0),
+    deposit: Number($('#deposit').value || 0),
+    inspectionFee: Number($('#inspectionFee').value || 0),
+    legalFees: Number($('#legalFees').value || 0),
+    annualPropertyTax: Number($('#annualPropertyTax').value || 0),
+    monthlyMaintenance: Number($('#monthlyMaintenance').value || 0),
+    monthlyUtilities: Number($('#monthlyUtilities').value || 0),
+    monthlyRental: Number($('#monthlyRental').value || 0),
+    monthlyHomeInsurance: Number($('#monthlyHomeInsurance').value || 0),
+    closingDate: $('#closingDate').value,
+    firstTimeBuyer: $('#firstTimeBuyer').value === 'yes',
+    isNonResident: $('#nonResident').value === 'yes',
+    isToronto: $('#isToronto')?.value === 'yes',
+    provinceCode,
+    propertyType: $('#propertyType').value,
+    dwellingType: $('#dwellingType').value,
+    apr: Number($('#apr').value || 0),
+    amortYears: Number($('#amortYears').value || 25),
+    cmhcHandling: $('#cmhcHandling')?.value || 'finance',
+    downAmt: Number($('#downAmt').value || 0),
+  };
+}
 
-  // Link down payment controls
-  linkDownPayment(purchasePrice);
-  const downAmt = Number($('#downAmt').value || 0);
-  const downPct = purchasePrice ? (downAmt / purchasePrice) * 100 : 0;
-
-  // Validation
+function validateInputs(inputs) {
+  const { purchasePrice, deposit, downAmt, apr, amortYears } = inputs;
   const messages = [];
   if (!(purchasePrice > 0)) messages.push('Purchase price must be greater than 0.');
   if (deposit < 0) messages.push('Deposit cannot be negative.');
@@ -130,47 +141,42 @@ async function recalc() {
   if (amortYears < 5 || amortYears > 30) messages.push('Amortization must be between 5 and 30 years.');
 
   const minDown = minDownPayment(purchasePrice);
-  const belowMinDown = downAmt < minDown;
-  if (purchasePrice > 0 && belowMinDown) {
+  if (purchasePrice > 0 && downAmt < minDown) {
     messages.push(`Down payment below Canadian minimum ${fmt(minDown)} for this price.`);
   }
-  showValidationMessages(messages);
+  return messages;
+}
 
-  // LTT from internal API
-  const lttResp = await fetch('/api/tax/land-transfer', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ purchasePrice, firstTimeBuyer, isNonResident, propertyType, dwellingType, isToronto })
-  }).then(r => r.json()).catch(() => ({ total: 0 }));
-  const landTransferTax = Number(lttResp.total || 0);
-  $('#landTransferTax').textContent = fmt(landTransferTax);
-  // Fill the accessible breakdown table
+function updateDisplay(results) {
+  const {
+    landTransferTax, lttResp, nrstVal, cmhcPST, cmhcFinanced, cmhcAtClosing,
+    totalMortgageAmount, monthlyMortgage, totalCash, totalMonthly, inputs
+  } = results;
+  const {
+    purchasePrice, deposit, inspectionFee, legalFees, annualPropertyTax, downAmt,
+    monthlyMaintenance, monthlyUtilities, monthlyRental, monthlyHomeInsurance
+  } = inputs;
+
+  const set = (id, v) => { const el = $('#' + id); if (el) el.textContent = fmt(v); };
+
+  // LTT section
+  set('landTransferTax', landTransferTax);
   const provBefore = Number(lttResp.provincialBeforeRebate || 0);
   const provRebate = Number(lttResp.provincialRebateApplied || 0);
   const provAfter = Number(lttResp.provincial || 0);
   const munBefore = Number(lttResp.municipalBeforeRebate || 0);
   const munRebate = Number(lttResp.municipalRebateApplied || 0);
   const munAfter = Number(lttResp.municipal || 0);
-  const nrstVal = Number(lttResp.nrst || 0);
-  // Sum for 'Tax' row should exclude NRST now that NRST has its own row
-  const sumBefore = provBefore + munBefore; // exclude nrstVal here
+  const sumBefore = provBefore + munBefore;
   const sumRebate = provRebate + munRebate;
   const sumAfter = provAfter + munAfter + nrstVal;
-  const set = (id, v) => { const el = $('#' + id); if (el) el.textContent = fmt(v); };
   set('lttProvTax', provBefore);
   set('lttMunTax', munBefore);
   set('lttSumTax', sumBefore);
-  // NRST row visibility
-  const nrstRow = document.getElementById('lttNrstRow');
-  const nrstAmtCell = document.getElementById('lttNrstAmount');
-  if (nrstRow && nrstAmtCell) {
-    if (nrstVal > 0) {
-      nrstRow.classList.remove('d-none');
-      nrstAmtCell.textContent = fmt(nrstVal);
-    } else {
-      nrstRow.classList.add('d-none');
-      nrstAmtCell.textContent = fmt(0);
-    }
+  const nrstRow = $('#lttNrstRow');
+  if (nrstRow) {
+    nrstRow.classList.toggle('d-none', nrstVal <= 0);
+    if (nrstVal > 0) set('lttNrstAmount', nrstVal);
   }
   set('lttProvRebate', provRebate);
   set('lttMunRebate', munRebate);
@@ -179,19 +185,83 @@ async function recalc() {
   set('lttMunTotal', munAfter);
   set('lttSumTotal', sumAfter);
 
+  // CMHC section
+  set('cmhcFinanced', cmhcFinanced);
+  set('cmhcAtClosing', cmhcAtClosing);
+  set('cmhcTax', cmhcPST);
+  const cmhcTaxRow = $('#cmhcTaxRow');
+  if (cmhcTaxRow) cmhcTaxRow.style.display = cmhcPST > 0 ? '' : 'none';
+
+  // Summary sections
+  set('totalCash', totalCash);
+  set('cashDownPaymentAmount', downAmt);
+  $('#cashDeposit').textContent = deposit ? ('-' + fmt(deposit).replace(/^-/, '')) : fmt(0);
+  set('inspectionFeeDisplay', inspectionFee);
+  set('legalFeesDisplay', legalFees);
+
+  set('totalMortgageAmount', totalMortgageAmount);
+  set('purchasePriceDisplay', purchasePrice);
+  $('#downPaymentAmountDisplay').textContent = downAmt ? ('-' + fmt(downAmt).replace(/^-/, '')) : fmt(0);
+
+  set('totalMonthly', totalMonthly);
+  set('monthlyMortgage', monthlyMortgage);
+  set('monthlyPropertyTax', annualPropertyTax / 12);
+  set('monthlyHomeInsuranceDisplay', monthlyHomeInsurance);
+  set('monthlyMaintenanceDisplay', monthlyMaintenance);
+  set('monthlyUtilitiesDisplay', monthlyUtilities);
+  set('monthlyRentalDisplay', monthlyRental);
+}
+
+
+async function recalc() {
+  const inputs = getFormInputs();
+  const { purchasePrice, downAmt, apr, amortYears, firstTimeBuyer, isNonResident, propertyType, dwellingType, isToronto, provinceCode, cmhcHandling, deposit, inspectionFee, legalFees, annualPropertyTax, monthlyMaintenance, monthlyUtilities, monthlyRental, monthlyHomeInsurance } = inputs;
+  const apiErrors = [];
+
+  // Days to close in Toronto time
+  $('#daysToClose').value = daysBetweenTodayToronto(inputs.closingDate);
+
+  // Link down payment controls
+  linkDownPayment(purchasePrice);
+  // Re-read downAmt as linkDownPayment may have changed it
+  inputs.downAmt = Number($('#downAmt').value || 0);
+  const downPct = purchasePrice ? (inputs.downAmt / purchasePrice) * 100 : 0;
+
+  // Validation
+  const validationMessages = validateInputs(inputs);
+  const minDown = minDownPayment(purchasePrice);
+  const belowMinDown = inputs.downAmt < minDown;
+
+  // LTT from internal API
+  const lttResp = await fetch('/api/tax/land-transfer', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ purchasePrice, firstTimeBuyer, isNonResident, propertyType, dwellingType, isToronto })
+  }).then(r => r.json()).catch(() => {
+    apiErrors.push('Could not calculate Land Transfer Tax.');
+    return { total: 0 };
+  });
+  const landTransferTax = Number(lttResp.total || 0);
+  const nrstVal = Number(lttResp.nrst || 0);
+
   // CMHC applicability
   let cmhcPremium = 0;
   let cmhcPST = 0;
   if (purchasePrice > 0 && purchasePrice <= 1000000 && downPct < 20 && !belowMinDown) {
-    const baseMortgage = Math.max(0, purchasePrice - downAmt);
+    const baseMortgage = Math.max(0, purchasePrice - inputs.downAmt);
     const ltv = baseMortgage / purchasePrice; // 0..1
     const rate = cmhcRate(ltv);
     if (rate !== null && rate > 0) cmhcPremium = baseMortgage * rate;
+
     const cmhcResp = await fetch('/api/tax/cmhc-pst', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ purchasePrice, downPayment: downAmt, province: provinceCode })
-    }).then(r => r.json()).catch(() => ({ pst: 0 }));
+      body: JSON.stringify({ purchasePrice, downPayment: inputs.downAmt, province: provinceCode })
+    }).then(r => r.json()).catch(() => {
+      apiErrors.push('Could not calculate CMHC PST.');
+      return { pst: 0 };
+    });
+
     const serverPst = Number(cmhcResp.pst);
     if (Number.isFinite(serverPst) && serverPst > 0) {
       cmhcPST = serverPst;
@@ -201,61 +271,36 @@ async function recalc() {
       cmhcPST = Math.round(((cmhcPremium || 0) * localRate + Number.EPSILON) * 100) / 100;
     }
   }
+
+  // Show validation and API error messages
+  showValidationMessages(validationMessages, apiErrors);
+
   // Handling: finance vs upfront
-  let financedPremium = 0;
-  let premiumAtClosing = 0;
+  let cmhcFinanced = 0;
+  let cmhcAtClosing = 0;
   if (cmhcPremium > 0) {
-    if (cmhcHandling === 'finance') financedPremium = cmhcPremium;
-    else premiumAtClosing = cmhcPremium;
+    if (cmhcHandling === 'finance') cmhcFinanced = cmhcPremium;
+    else cmhcAtClosing = cmhcPremium;
   }
-  $('#cmhcFinanced').textContent = fmt(financedPremium);
-  $('#cmhcAtClosing').textContent = fmt(premiumAtClosing);
-    $('#cmhcTax').textContent = fmt(cmhcPST);
-    const cmhcTaxRow = document.getElementById('cmhcTaxRow');
-    if (cmhcTaxRow) cmhcTaxRow.style.display = cmhcPST > 0 ? '' : 'none';
 
   // Mortgage principal and payment
-  const baseMortgage = Math.max(0, purchasePrice - downAmt);
-  const mortgagePrincipal = baseMortgage + financedPremium;
-  const monthlyPayment = canadianMonthlyPayment(mortgagePrincipal, apr, amortYears);
-  $('#monthlyMortgage').textContent = fmt(monthlyPayment);
-  // Total mortgage amount = purchase price + financed premium - down payment
-  const totalMortgageAmount = purchasePrice + financedPremium - downAmt;
-  const totalMortgageEl = $('#totalMortgageAmount');
-  if (totalMortgageEl) totalMortgageEl.textContent = fmt(totalMortgageAmount);
+  const baseMortgage = Math.max(0, purchasePrice - inputs.downAmt);
+  const mortgagePrincipal = baseMortgage + cmhcFinanced;
+  const monthlyMortgage = canadianMonthlyPayment(mortgagePrincipal, apr, amortYears);
+  const totalMortgageAmount = mortgagePrincipal;
 
-  // Balance of down payment (for cash on hand). Clamp to 0
-  const balanceDown = Math.max(0, downAmt - deposit);
-  // Cash section displays: down payment amount and deposit (deposit shown as negative)
-  const cashDownDisp = $('#cashDownPaymentAmount'); if (cashDownDisp) cashDownDisp.textContent = fmt(downAmt);
-  const cashDepDisp = $('#cashDeposit'); if (cashDepDisp) cashDepDisp.textContent = deposit ? ('-' + fmt(deposit).replace(/^-/, '')) : fmt(0);
-  // Show inspection and legal fee displays
-  const inspDisp = $('#inspectionFeeDisplay'); if (inspDisp) inspDisp.textContent = fmt(inspectionFee);
-  const legalDisp = $('#legalFeesDisplay'); if (legalDisp) legalDisp.textContent = fmt(legalFees);
+  // Cash on hand
+  const totalCash = inputs.downAmt + inspectionFee + legalFees + landTransferTax + cmhcPST + cmhcAtClosing - deposit;
 
-  // Cash on hand (revised) = Down payment amount + inspection + legal + land transfer tax (net) + CMHC PST + premium at closing - deposit already paid
-  // (Deposit reduces what remains to bring; we add full down payment then subtract deposit.)
-  const totalCash = downAmt + inspectionFee + legalFees + landTransferTax + cmhcPST + premiumAtClosing - deposit;
-  $('#totalCash').textContent = fmt(totalCash);
-  // Mortgage amount section displays
-  const ppDisp = $('#purchasePriceDisplay'); if (ppDisp) ppDisp.textContent = fmt(purchasePrice);
-  const dpAmtDisp = $('#downPaymentAmountDisplay'); if (dpAmtDisp) dpAmtDisp.textContent = downAmt ? ('-' + fmt(downAmt).replace(/^-/, '')) : fmt(0);
-
-  // Monthly property tax
+  // Monthly expenses
   const monthlyPropertyTax = annualPropertyTax / 12;
-  $('#monthlyPropertyTax').textContent = fmt(monthlyPropertyTax);
+  const totalMonthly = monthlyMortgage + monthlyPropertyTax + monthlyMaintenance + monthlyUtilities + monthlyRental + monthlyHomeInsurance;
 
-  // Total monthly = mortgage payment + monthly property tax + maintenance + utilities + rental + home insurance
-  const totalMonthly = monthlyPayment + monthlyPropertyTax + monthlyMaintenance + monthlyUtilities + monthlyRental + monthlyHomeInsurance;
-  $('#totalMonthly').textContent = fmt(totalMonthly);
-  // Show home insurance monthly
-  const monthlyHomeInsuranceDisplay = $('#monthlyHomeInsuranceDisplay');
-  if (monthlyHomeInsuranceDisplay) monthlyHomeInsuranceDisplay.textContent = fmt(monthlyHomeInsurance);
-  const maintDisp = $('#monthlyMaintenanceDisplay'); if (maintDisp) maintDisp.textContent = fmt(monthlyMaintenance);
-  const utilDisp = $('#monthlyUtilitiesDisplay'); if (utilDisp) utilDisp.textContent = fmt(monthlyUtilities);
-  const rentalDisp = $('#monthlyRentalDisplay'); if (rentalDisp) rentalDisp.textContent = fmt(monthlyRental);
-
-  // Helper previews removed as requested
+  // Update display with all calculated results
+  updateDisplay({
+    landTransferTax, lttResp, nrstVal, cmhcPST, cmhcFinanced, cmhcAtClosing,
+    totalMortgageAmount, monthlyMortgage, totalCash, totalMonthly, inputs
+  });
 
   // persist key fields
   ['address','closingDate','isToronto','purchasePrice','deposit','downPct','downAmt','inspectionFee','legalFees','annualPropertyTax','apr','amortYears','cmhcHandling','firstTimeBuyer','nonResident','propertyType','dwellingType','monthlyMaintenance','monthlyUtilities','monthlyRental','monthlyHomeInsurance']
@@ -331,32 +376,40 @@ try {
 } catch {}
 // Market APR lookup
 async function fetchMarketAprAndApply(force = false) {
+  const btn = $('#btnUseMarketRate');
+  const originalBtnText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Fetching...';
+
   try {
     const resp = await fetch('/api/rates/5y-fixed');
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const json = await resp.json();
     const aprInput = $('#apr');
     const aprHelp = $('#aprHelp');
     const aprPct = Number(json.aprPercent);
-  const defaultApr = Number(aprInput.getAttribute('data-default-apr') || 0);
-  const shouldAutofill = force || !aprInput.value || Number(aprInput.value) === defaultApr;
-  if (shouldAutofill) {
-      if (Number.isFinite(aprPct) && aprPct > 0 && aprPct < 25) {
-        aprInput.value = aprPct.toFixed(2);
-    localStorage.setItem(storeKey('apr'), aprInput.value);
-        if (aprHelp) aprHelp.textContent = `Using ${aprPct.toFixed(2)}% from ${json.source} (as of ${json.asOfISO}).`;
-      }
-  } else if (aprHelp) {
+    const defaultApr = Number(aprInput.getAttribute('data-default-apr') || 0);
+    const shouldAutofill = force || !aprInput.value || Number(aprInput.value) === defaultApr;
+
+    if (shouldAutofill && Number.isFinite(aprPct) && aprPct > 0 && aprPct < 25) {
+      aprInput.value = aprPct.toFixed(2);
+      localStorage.setItem(storeKey('apr'), aprInput.value);
+      if (aprHelp) aprHelp.textContent = `Using ${aprPct.toFixed(2)}% from ${json.source} (as of ${json.asOfISO}).`;
+    } else if (aprHelp) {
       aprHelp.textContent = `Market: ${aprPct.toFixed(2)}% from ${json.source} (as of ${json.asOfISO}).`;
     }
   } catch (e) {
+    showValidationMessages([], ['Could not retrieve market rate. Please enter one manually.']);
     const aprHelp = $('#aprHelp');
     if (aprHelp) aprHelp.textContent = 'Could not retrieve market rate; using entered value.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalBtnText;
+    recalc();
   }
-  recalc();
 }
 
-document.getElementById('btnUseMarketRate')?.addEventListener('click', () => fetchMarketAprAndApply(true));
+$('#btnUseMarketRate')?.addEventListener('click', () => fetchMarketAprAndApply(true));
 // Auto-fill APR once if empty or equal to default
 (() => {
   const aprInput = $('#apr');
